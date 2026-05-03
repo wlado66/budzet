@@ -58,7 +58,9 @@
   .page.active { display: flex; }
 
   /* HOME */
-  .home-header { padding: 20px 20px 16px; border-bottom: 0.5px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; }
+  .home-header { padding: 16px 20px 12px; border-bottom: 0.5px solid var(--border); background: var(--bg); position: sticky; top: 0; z-index: 10; }
+  .balance-label { font-size: 11px; color: var(--text2); font-weight: 500; letter-spacing: .05em; margin-bottom: 4px; }
+  .divider { height: 0.5px; background: var(--border); margin: 12px 0 10px; }
   .period-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
   .period-label { font-size: 12px; color: var(--text2); }
   .period-nav { display: flex; align-items: center; gap: 4px; }
@@ -174,18 +176,24 @@
     <!-- HOME -->
     <div class="page active" id="page-home">
       <div class="home-header">
+        <div class="balance-label">Saldo całkowite</div>
+        <div class="balance-big" id="h-balance">0,00 zł</div>
+        <div class="stats-row" style="margin-bottom:12px">
+          <div class="stat-card"><div class="stat-label">Wszystkie wpływy</div><div class="stat-value inc" id="h-income-total">0,00 zł</div></div>
+          <div class="stat-card"><div class="stat-label">Wszystkie wydatki</div><div class="stat-value exp" id="h-expense-total">0,00 zł</div></div>
+        </div>
+        <div class="divider"></div>
         <div class="period-row">
-          <span class="period-label">Okres</span>
+          <span class="period-label">Miesiąc</span>
           <div class="period-nav">
             <button onclick="shiftPeriod(-1)">‹</button>
             <span id="period-display"></span>
             <button onclick="shiftPeriod(1)">›</button>
           </div>
         </div>
-        <div class="balance-big" id="h-balance">0,00 zł</div>
         <div class="stats-row">
-          <div class="stat-card"><div class="stat-label">Wpływy</div><div class="stat-value inc" id="h-income">0,00 zł</div></div>
-          <div class="stat-card"><div class="stat-label">Wydatki</div><div class="stat-value exp" id="h-expense">0,00 zł</div></div>
+          <div class="stat-card"><div class="stat-label">Wpływy w miesiącu</div><div class="stat-value inc" id="h-income">0,00 zł</div></div>
+          <div class="stat-card"><div class="stat-label">Wydatki w miesiącu</div><div class="stat-value exp" id="h-expense">0,00 zł</div></div>
         </div>
       </div>
       <div id="home-list" style="flex:1"></div>
@@ -318,12 +326,20 @@ function renderHome() {
     return dt.getFullYear()===viewYear && dt.getMonth()===viewMonth;
   });
   document.getElementById('period-display').textContent = MONTHS_PL[viewMonth] + ' ' + viewYear;
+
+  // Saldo całkowite
+  const totalInc = entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+  const totalExp = entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+  const totalBal = totalInc - totalExp;
+  const balEl = document.getElementById('h-balance');
+  balEl.textContent = (totalBal<0?'−':'') + fmt(totalBal);
+  balEl.className = 'balance-big' + (totalBal<0?' neg':'');
+  document.getElementById('h-income-total').textContent = fmt(totalInc);
+  document.getElementById('h-expense-total').textContent = fmt(totalExp);
+
+  // Statystyki miesięczne
   const inc = filtered.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
   const exp = filtered.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
-  const bal = inc - exp;
-  const balEl = document.getElementById('h-balance');
-  balEl.textContent = (bal<0?'−':'') + fmt(bal);
-  balEl.className = 'balance-big' + (bal<0?' neg':'');
   document.getElementById('h-income').textContent = fmt(inc);
   document.getElementById('h-expense').textContent = fmt(exp);
   const list = document.getElementById('home-list');
